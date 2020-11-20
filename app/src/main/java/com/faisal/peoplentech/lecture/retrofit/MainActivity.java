@@ -6,9 +6,12 @@ import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.BroadcastReceiver;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.ConnectivityManager;
 import android.net.wifi.WifiManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -31,7 +34,7 @@ public class MainActivity extends AppCompatActivity {
     List<Anim> mList = new ArrayList<>();
     private RecyclerView recyclerView;
     private AnimeViewAdopter mAdapter;
-    WifiReceiver broadcastReceiver;
+    BroadcastReceiver mNetworkReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,6 +57,9 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.setAdapter(mAdapter);
         call();
+
+        mNetworkReceiver = new WifiReceiver();
+        registerNetworkBroadcastForNougat();
     }
 
     private void call() {
@@ -85,11 +91,26 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private void registerNetworkBroadcastForNougat() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            registerReceiver(mNetworkReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            registerReceiver(mNetworkReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
+        }
+    }
+
+    protected void unregisterNetworkChanges() {
+        try {
+            unregisterReceiver(mNetworkReceiver);
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+        }
+    }
+
     @Override
-    protected void onResume() {
-        super.onResume();
-/*        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION);
-        registerReceiver(broadcastReceiver, intentFilter);*/
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterNetworkChanges();
     }
 }

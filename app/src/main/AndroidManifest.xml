@@ -23,7 +23,7 @@
         </activity>
         <receiver android:name=".receiver.WifiReceiver">
             <intent-filter android:priority="100">
-                <action android:name="android.net.wifi.STATE_CHANGE" />
+
                 <action android:name="android.net.conn.CONNECTIVITY_CHANGE"/>
             </intent-filter>
         </receiver>
